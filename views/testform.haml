@@ -1,0 +1,14 @@
+!!!
+%form{ :method => 'post', :action => '/' }
+  %ul
+    %li
+      %label Token:
+      %input{ :type => 'text', :name => 'token', :value => token }
+    %li
+      %label Name:
+      %input{ :type => 'text', :name => 'Name', :value => 'Jonathan Camenisch' }
+    %li
+      %label Email:
+      %input{ :type => 'text', :name => 'Email', :value => 'jonathan@camenisch.net' }
+  %button{ :type => 'submit' }
+    Post It.

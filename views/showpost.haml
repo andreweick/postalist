@@ -1,0 +1,13 @@
+!!!
+%h1 Authentication succeeded somehow.
+%p
+  Token submitted:
+  = request.POST['token']
+  or in hex:
+  = hex_decompress(request.POST['token'])
+%p
+  Token should have been:
+  = token
+  or in hex:
+  = hex_decompress(token)
+%p= request.POST.to_s
