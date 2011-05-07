@@ -15,13 +15,16 @@ end
 
 def authenticate
   if request.POST and request.POST['token'] then
-    request.POST['token'] == token
+    hex_decompress(request.POST['token']) == hex_decompress(token)
   else
     false
   end
 end
 
-post /.*/ do
-  redirect back if not authenticate
-  haml :showpost
+post '/test' do
+  if authenticate then
+    haml :showpost
+  else
+    redirect back
+  end
 end

@@ -1,15 +1,3 @@
-class String
-  def sha256
-    Digest::SHA2.hexdigest(to_s)
-  end
-end
-
-class Digest::Class
-  def base36digest string
-    hexdigest(string).to_i(16).to_s(36)
-  end
-end
-
 helpers do
   def show string, label, processor=:sha256
     "#{label}: #{string} - #{processor}: #{string.send(processor)} (#{string.send(processor).length})"
@@ -18,10 +6,12 @@ helpers do
     'something'
   end
   def hex_compress string
-    string.to_i(16).to_s(36)
+    #string.to_i(16).to_s(36)
+    Base64.encode64(string)
   end
   def hex_decompress string
-    string.to_i(36).to_s(16)
+    #string.to_i(36).to_s(16)
+    Base64.decode64(string)
   end
   def seed
     @seed ||= (
@@ -32,14 +22,16 @@ helpers do
   end
   def token
     hex_compress(
-      seed + 
-      (
+      seed +
+      Digest::SHA2.hexdigest(
         (request.POST && request.POST['token'] ?
           request.referer :
           request.url
         ) +
-        request.ip+seed+secret
-      ).sha256
+        request.ip +
+        seed +
+        secret
+      )
     )
   end
 end

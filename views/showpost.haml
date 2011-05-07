@@ -1,5 +1,5 @@
 !!!
-%h1 Authentication succeeded somehow.
+%h1 Authentication succeeded
 %p
   Token submitted:
   = request.POST['token']
@@ -10,4 +10,19 @@
   = token
   or in hex:
   = hex_decompress(token)
-%p= request.POST.to_s
+%ul
+  - request.POST.each do |key, val|
+    %li= key+': '+val
+%ul
+  %li
+    url
+    = request.url
+  %li
+    referer
+    = request.referer
+  %li
+    ip
+    = "'"+request.ip+"'"
+  %li
+    seed
+    = seed

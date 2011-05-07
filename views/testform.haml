@@ -1,9 +1,7 @@
 !!!
-%form{ :method => 'post', :action => 'http://sinatrapost.heroku.com' }
+%form{ :method => 'post', :action => '/test' }
+  %input{ :type => 'hidden', :name => 'token', :value => token }
   %ul
-    %li
-      %label Token:
-      %input{ :type => 'text', :name => 'token', :value => token }
     %li
       %label Name:
       %input{ :type => 'text', :name => 'Name', :value => 'Jonathan Camenisch' }
