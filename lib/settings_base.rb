@@ -29,7 +29,9 @@ class SettingsBase
     @request.url
   end
   def ip
-    @request.ip
+    @request.ip == '127.0.0.1' ?
+      '72.198.74.62' :
+      @request.ip
   end
   
   def seed(size=5)
