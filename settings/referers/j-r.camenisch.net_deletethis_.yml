@@ -1,0 +1,2 @@
+success_url: 'http://www.google.com/?q=success'
+fail_url: 'http://www.google.com/?q=failure'  

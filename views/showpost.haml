@@ -4,25 +4,25 @@
   Token submitted:
   = request.POST['token']
   or in hex:
-  = hex_decompress(request.POST['token'])
+  = @settings.hex_unpack(request.POST['token'])
 %p
   Token should have been:
-  = token
+  = @settings.token
   or in hex:
-  = hex_decompress(token)
+  = @settings.hex_unpack(@settings.token)
 %ul
-  - request.POST.each do |key, val|
-    %li= key+': '+val
+  - @settings.post.each do |key, val|
+    %li= "#{key}: #{val}"
 %ul
   %li
-    url
-    = request.url
+    url:
+    = @settings.url
   %li
-    referer
-    = request.referer
+    referer:
+    = @settings.referer
   %li
-    ip
-    = "'"+request.ip+"'"
+    ip:
+    = @settings.ip
   %li
-    seed
-    = seed
+    seed:
+    = @settings.seed

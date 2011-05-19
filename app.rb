@@ -3,9 +3,27 @@ require 'haml'
 require 'base64'
 require 'digest/sha2'
 require 'encryptor'
-require './helpers'
+require './lib/helpers'
+require './lib/settings'
 
-get '/' do
+before do
+  @settings = SettingsFactory.get_for(request) if request.post?
+end
+
+def authenticate
+  @settings.authenticate
+end
+
+post %r{^/test.*} do
+  if authenticate then
+    haml :showpost
+  else
+    redirect back
+  end
+end
+
+get %r{^/test.*} do
+  @settings = SettingsFactory.get_for(request, request.url)
   haml :testform
 end
 
@@ -13,18 +31,3 @@ get /.*/ do
   request.path
 end
 
-def authenticate
-  if request.POST and request.POST['token'] then
-    hex_decompress(request.POST['token']) == hex_decompress(token)
-  else
-    false
-  end
-end
-
-post '/test' do
-  if authenticate then
-    haml :showpost
-  else
-    redirect back
-  end
-end

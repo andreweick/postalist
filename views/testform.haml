@@ -1,6 +1,19 @@
 !!!
-%form{ :method => 'post', :action => '/test' }
-  %input{ :type => 'hidden', :name => 'token', :value => token }
+%ul
+  %li
+    url:
+    = @request.url
+  %li
+    ip:
+    = @request.ip
+  %li
+    secret:
+    = @settings.secret
+  %li
+    seed:
+    = @settings.seed
+%form{ :method => 'post', :action => '' }
+  %input{ :type => 'text', :name => 'token', :value => @settings.test_token }
   %ul
     %li
       %label Name:
