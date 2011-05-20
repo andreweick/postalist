@@ -50,10 +50,15 @@ class SettingsBase
   def initialize(request)
     @succeeded, @failed = false, false
     @request = request
+    @flash = ''
   end
 
   def succeeded?; @succeeded end
   def failed?; @failed end
+  
+  def flash
+    URI.escape(@flash, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))
+  end
   
   def hex_pack string
     Base64.encode64(string)
@@ -66,10 +71,10 @@ class SettingsBase
   
   def seed
     @seed ||= post && post['token'] ?
-      hex_unpack(post['token'])[0..settings[:seed_length]-1] :
-      (0..settings[:seed_length]-1).inject('') { |out,i|
+      hex_unpack(post['token'])[0..seed_length-1] :
+      (0..seed_length-1).inject('') do |out,i|
         out + '0123456789abcdef'[rand(15)].chr
-      }
+      end
   end
   
   def token
@@ -92,7 +97,9 @@ class SettingsBase
   end
   
   def process
-    @succeeded = true
+    @flash = 'Something went wrong'
+    @succeeded = false
+    @failed = true
   end
   
   def next_action
