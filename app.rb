@@ -1,11 +1,3 @@
-require 'sinatra'
-require 'haml'
-require 'base64'
-require 'digest/sha2'
-require 'encryptor'
-require './lib/helpers'
-require './lib/settings'
-
 before do
   @settings = SettingsFactory.get_for(request) if request.post?
 end
@@ -14,9 +6,10 @@ def authenticate
   @settings.authenticate
 end
 
-post %r{^/test.*} do
+post /.*/ do
   if authenticate then
-    haml :showpost
+    @settings.process
+    send(*@settings.next_action)
   else
     redirect back
   end
@@ -30,4 +23,3 @@ end
 get /.*/ do
   request.path
 end
-

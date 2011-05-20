@@ -1,62 +1,84 @@
 class SettingsBase
-  attr_reader :referer_config
+  
+  @@settings_skel = {
+    on_success: 'http://camenischcreative.com/',
+    on_failure: 'http://cnn.com',
+    token_elements: [:referer, :ip, :seed, :secret],
+    seed_length: 5,
+    success_action: Proc.new { [:redirect, on_success] },
+    failure_action: Proc.new { [:redirect, on_failure] },
+    referer: Proc.new { @request.referer },
+    url: Proc.new { @request.url },
+    ip: Proc.new { @request.ip },
+    secret: 'something'
+  }
 
-  def initialize(req)
-    @request = req
+  def self.settings
+    @settings ||= @@settings_skel.clone
+  end
+  def settings; self.class.settings end
+  
+  def self.method_missing(symbol, *args, &block)
+    if settings.has_key?(symbol) then
+      case args.count
+        when 0
+          if block_given? then
+            settings[symbol] = block
+          else
+            settings[symbol]
+          end
+        when 1
+          settings[symbol] = args[0]
+        when 2
+          settings[symbol] = args
+      end
+    else
+      super
+    end
   end
   
-  def secret
-    'something'
+  def method_missing(symbol, *args)
+    if settings.has_key?(symbol) then
+      settings[symbol].is_a?(Proc) ?
+        instance_eval(&settings[symbol]) :
+        settings[symbol]
+    else
+      raise
+    end
   end
+  
+  def initialize(request)
+    @succeeded, @failed = false, false
+    @request = request
+  end
+
+  def succeeded?; @succeeded end
+  def failed?; @failed end
   
   def hex_pack string
-    #string.to_i(16).to_s(36)
     Base64.encode64(string)
   end
-  
   def hex_unpack string
-    #string.to_i(36).to_s(16)
     Base64.decode64(string)
   end
+
+  def post; @request.post? && @request.POST end
   
-  def post
-    @request.post? && @request.POST
-  end
-  def referer
-    @request.referer
-  end
-  def url
-    @request.url
-  end
-  def ip
-    @request.ip == '127.0.0.1' ?
-      '72.198.74.62' :
-      @request.ip
-  end
-  
-  def seed(size=5)
-    @seed ||= (
-      post && post['token'] ?
-        hex_unpack(post['token']) :
-        (0..size-1).inject(''){|out,i|
-          out+'0123456789abcdef'[rand(15)].chr
-        }
-    ).chomp[0..size-1]
+  def seed
+    @seed ||= post && post['token'] ?
+      hex_unpack(post['token'])[0..settings[:seed_length]-1] :
+      (0..settings[:seed_length]-1).inject('') { |out,i|
+        out + '0123456789abcdef'[rand(15)].chr
+      }
   end
   
   def token
     hex_pack(
       seed +
       Digest::SHA2.hexdigest(
-        referer + ip + seed + secret
-      )
-    )
-  end
-  def test_token
-    hex_pack(
-      seed +
-      Digest::SHA2.hexdigest(
-        url + ip + seed + secret
+        token_elements.inject('') do |out,el|
+          out + send(el)
+        end
       )
     )
   end
@@ -66,6 +88,20 @@ class SettingsBase
       hex_unpack(post['token']) == hex_unpack(token)
     else
       false
+    end
+  end
+  
+  def process
+    @succeeded = true
+  end
+  
+  def next_action
+    if succeeded? then
+      success_action
+    elsif failed? then
+      failure_action
+    else
+      raise 'processing failed to complete'
     end
   end
   
