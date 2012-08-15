@@ -1,12 +1,22 @@
-require 'active_support/inflector'
-require 'sinatra'
-require 'haml'
+LOG = File.new("app.log", "a+")
+$stdout.reopen(LOG)
+$stderr.reopen(LOG)
+
+require 'rubygems'
+require 'bundler'
+
+Bundler.require
+
+$LOAD_PATH << File.expand_path('../lib',__FILE__)
+
 require 'base64'
 require 'digest/sha2'
-require 'encryptor'
 require 'uri'
-require './lib/helpers'
-require './lib/settings'
+
+require 'sinatra'
+
+require 'helpers'
+require 'settings'
 require './app'
 
 run Sinatra::Application

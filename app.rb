@@ -1,5 +1,5 @@
 before do
-  @settings = SettingsFactory.get_for(request) if request.post?
+  @settings = Settings.new(request) if request.post?
 end
 
 def authenticate
@@ -15,8 +15,8 @@ post /.*/ do
   end
 end
 
-get %r{^/test.*} do
-  @settings = SettingsFactory.get_for(request, request.url)
+get /^\/test.*/ do
+  @settings = Settings.new(request, request.url)
   haml :testform
 end
 
