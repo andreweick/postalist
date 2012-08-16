@@ -16,6 +16,8 @@ require 'uri'
 require 'sinatra'
 
 require 'helpers'
+require 'templater'
+require 'email'
 require 'settings'
 require './app'
 

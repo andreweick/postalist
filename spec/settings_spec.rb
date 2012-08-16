@@ -16,8 +16,11 @@ describe Settings do
 
     File.open(@defaults_filename, 'w') do |f|
       f.write <<-eof
-one: 1
-two: 2
+        one: 1
+        two: 2
+        sub_settings:
+          one: default 1
+          two: default 2
       eof
     end
     `touch #{@settings_filename}`
@@ -46,9 +49,16 @@ two: 2
     before(:all) do
       File.open(@settings_filename, 'w') do |f|
         f.write <<-eof
-one: 'custom 1'
-three: 3
-late_bound: '{{one}} {{three}}'
+          one: 'custom 1'
+          three: 3
+          sub_settings:
+            one: custom 1
+            three: custom 3
+          four:
+            one: 'nested 1'
+            two: 'nested 2'
+          late_bound: '{{one}} {{three}}'
+          nested: '{{#four}}{{one}}, {{two}}{{/four}}'
         eof
       end
     end
@@ -58,8 +68,18 @@ late_bound: '{{one}} {{three}}'
       expect(@settings.three).to eq 3
     end
 
-    it "compiles late-bound properties via handlebars syntax" do
+    it "compiles late-bound properties via mustache syntax" do
       expect(@settings.late_bound).to eq 'custom 1 3'
+    end
+
+    it "compiles nested properties via mustache syntax" do
+      expect(@settings.nested).to eq 'nested 1, nested 2'
+    end
+
+    it "merges custom sub-settings with default ones" do
+      expect(@settings.sub_settings['one']).to eq 'custom 1'
+      expect(@settings.sub_settings['two']).to eq 'default 2'
+      expect(@settings.sub_settings['three']).to eq 'custom 3'
     end
   end
 end
