@@ -1,0 +1,3 @@
+seed_length: 5
+on_success: 'http://google.com/'
+ip: '72.198.74.62'

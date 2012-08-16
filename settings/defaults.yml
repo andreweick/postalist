@@ -1,0 +1,22 @@
+on_success: 'http://camenischcreative.com/'
+on_failure: 'http://cnn.com'
+token_elements:
+  - referer
+  - ip
+  - seed
+  - secret
+seed_length: 5
+secret: something
+mail:
+  from: webform@camenischcreative.com
+  via: smtp
+  via_options:
+    host: smtp.gmail.com
+  to: nil
+  cc: nil
+  bcc: nil
+  from: nil
+  subject: nil
+  #charset: ,
+  #message_id: ,
+  sender: 'webform@camenischcreative.com'

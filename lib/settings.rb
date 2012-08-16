@@ -1,84 +1,54 @@
+require 'psych'
+
 class Settings
 
-  @@settings_skel = {
-    on_success: 'http://camenischcreative.com/',
-    on_failure: 'http://cnn.com',
-    token_elements: [:referer, :ip, :seed, :secret],
-    seed_length: 5,
-    success_action: Proc.new { [:redirect, on_success] },
-    failure_action: Proc.new { [:redirect, on_failure] },
-    referer: Proc.new { @request.referer },
-    url: Proc.new { @request.url },
-    ip: Proc.new { @request.ip },
-    secret: 'something',
-    mail_defaults: {
-      from: 'webform@camenischcreative.com',
-      via: :smtp,
-      via_options: {
-        host: 'smtp.gmail.com'
-      },
-      to: :em_to,
-      cc: :em_cc,
-      bcc: :em_bcc,
-      from: :em_from,
-      subject: :em_subject,
-      #charset: ,
-      headers: {},
-      #message_id: ,
-      sender: 'webform@camenischcreative.com'
-    }
-  }
+  def self.defaults
+    @defaults ||= Psych.load(File.read(File.expand_path('../../settings/defaults.yml', __FILE__)))
+  end
 
   def initialize(request, referer=false)
     @succeeded, @failed = false, false
     @request = request
     @flash = ''
 
-    referer ||= request.referer
-    settings_file = referer.sub(%r{^http://(www\.)?},'')
-                           .gsub(%r{:|\.},'_')
-                           .sub(/_$/,'')
-    settings_file = "./settings/referers/#{settings_file}/settings.rb"
-    if File.exists?(settings_file) then
-      instance_eval(File.open(settings_file, 'rb').read)
-    else
-      raise "Cannot find #{settings_file}"
-    end
+    @referer = referer || @request.referer
+    @settings_file = File.join(
+      './settings/referers/',
+      @referer.sub(%r{^http://(www\.)?},'').gsub(%r{:|\.},'_').sub(/_$/,''),
+      'settings.yml'
+    )
   end
 
-  def self.settings
-    @settings ||= @@settings_skel.clone
+  def settings
+    @settings ||= self.class.defaults.deep_merge(
+      Psych.load(File.read(@settings_file)) || {}
+    )
   end
-  def settings; self.class.settings end
 
-  def self.method_missing(symbol, *args, &block)
-    if settings.has_key?(symbol) then
-      case args.count
-        when 0
-          if block_given? then
-            settings[symbol] = block
-          else
-            settings[symbol]
-          end
-        when 1
+  def []=(*args)
+
+  end
+
+  def method_missing(symbol, *args, &block)
+    symbol = symbol.to_s
+    if symbol[-1] == '='
+      symbol = symbol[0..-2]
+      case
+        when block_given?
+          settings[symbol] = proc(&block)
+        when args.count == 1
           settings[symbol] = args[0]
-        when 2
+        else
           settings[symbol] = args
       end
-    else
-      super
-    end
-  end
-
-  def method_missing(symbol, *args)
-    if settings.has_key?(symbol) then
-      if settings[symbol].is_a?(Proc)
-        instance_eval(&settings[symbol])
+    elsif settings.has_key?(symbol) then
+      if block_given? || args.count > 0 then
+        self.send("#{symbol}=", *args, proc(&block))
       else
         settings[symbol]
       end
     else
-      raise
+      super(symbol, *args, &block)
     end
   end
 
@@ -122,6 +92,7 @@ class Settings
     mail_settings = mail_defaults.clone
     mail_settings[:to] = "jonathan@camenisch.net"
     mail_settings[:headers]['X-X-Sender'] = "Message posted on #{referer} from #{ip}"
+    mail_settings[:subject] ||= mail_settings[:headers]['X-X-Sender']
     mail_settings[:via] = :sendmail
 
     Pony.mail(mail_settings)
