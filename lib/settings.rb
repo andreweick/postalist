@@ -19,7 +19,6 @@ class Settings
   def initialize(request, referer=false)
     @succeeded, @failed = false, false
     @request = request
-    @flash = ''
 
     @referer = referer || @request.referer
     @settings_file = File.join(
@@ -28,6 +27,9 @@ class Settings
       'settings.yml'
     )
   end
+
+  attr_reader :referer
+  attr_writer :flash
 
   def settings_path
     self.class.settings_path
@@ -41,10 +43,6 @@ class Settings
 
   def []=(*args)
 
-  end
-
-  def templater
-    @templater ||= Templater.new(self)
   end
 
   def parse(string)
@@ -83,8 +81,12 @@ class Settings
   def succeeded?; @succeeded end
   def failed?; @failed end
 
+  def flash=(value)
+    @flash = value
+  end
+
   def flash
-    URI.escape(@flash, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))
+    @flash && URI.escape(@flash, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))
   end
 
   def hex_pack string; Base64.encode64(string) end
@@ -116,22 +118,12 @@ class Settings
     post && post['token'] && hex_unpack(post['token']) == hex_unpack(token)
   end
 
-  def queue_mail
-    mail_settings = mail_defaults.clone
-    mail_settings[:to] = "jonathan@camenisch.net"
-    mail_settings[:headers]['X-X-Sender'] = "Message posted on #{referer} from #{ip}"
-    mail_settings[:subject] ||= mail_settings[:headers]['X-X-Sender']
-    mail_settings[:via] = :sendmail
-
-    Pony.mail(mail_settings)
-  end
-
   def process
     begin
       queue_mail
       @succeeded = true
       catch do |e|
-        @flash = 'Something went wrong'
+        self.flash = 'Something went wrong'
         @failed = true
       end
     end
@@ -144,21 +136,6 @@ class Settings
       failure_action
     else
       raise 'processing failed to complete'
-    end
-  end
-
-  class Templater < Mustache
-    def initialize(settings, _template)
-      @settings = settings
-      self.template = _template
-    end
-
-    def method_missing(symbol, *args, &block)
-      @settings.send(symbol, *args, &block)
-    end
-
-    def respond_to?(symbol)
-      super(symbol) ||  @settings.respond_to?(symbol)
     end
   end
 end

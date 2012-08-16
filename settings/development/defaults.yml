@@ -1,5 +1,7 @@
 on_success: 'http://camenischcreative.com/'
 on_failure: "{{referer}}?message={{flash}}"
+actions:
+  - email
 token_elements:
   - referer
   - ip
@@ -9,10 +11,10 @@ seed_length: 5
 secret: something
 mail:
   from: webform@camenischcreative.com
-  via: smtp
+  via: sendmail
   via_options:
     host: smtp.gmail.com
-  to: nil
+  to: jonathan@camenisch.net
   cc: nil
   bcc: nil
   from: nil
