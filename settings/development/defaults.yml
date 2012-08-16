@@ -1,5 +1,5 @@
 on_success: 'http://camenischcreative.com/'
-on_failure: 'http://cnn.com'
+on_failure: "{{referer}}?message={{flash}}"
 token_elements:
   - referer
   - ip
