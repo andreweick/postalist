@@ -2,8 +2,18 @@ require 'psych'
 
 class Settings
 
-  def self.defaults
-    @defaults ||= Psych.load(File.read(File.expand_path('../../settings/defaults.yml', __FILE__)))
+  class << self
+    def env
+      ENV['RACK_ENV'] || :development
+    end
+
+    def settings_path
+      File.expand_path("../../settings/#{env}", __FILE__)
+    end
+
+    def defaults
+      @defaults ||= Psych.load(File.read(File.join(settings_path, 'defaults.yml')))
+    end
   end
 
   def initialize(request, referer=false)
@@ -13,10 +23,14 @@ class Settings
 
     @referer = referer || @request.referer
     @settings_file = File.join(
-      './settings/referers/',
+      settings_path, 'referers',
       @referer.sub(%r{^http://(www\.)?},'').gsub(%r{:|\.},'_').sub(/_$/,''),
       'settings.yml'
     )
+  end
+
+  def settings_path
+    self.class.settings_path
   end
 
   def settings
@@ -29,27 +43,41 @@ class Settings
 
   end
 
+  def templater
+    @templater ||= Templater.new(self)
+  end
+
+  def parse(string)
+    return string unless string.is_a? String
+    @templates ||= {}
+    @templates[string] ||= Templater.new(self, string)
+    @templates[string].render
+  end
+
   def method_missing(symbol, *args, &block)
-    symbol = symbol.to_s
     if symbol[-1] == '='
       symbol = symbol[0..-2]
       case
         when block_given?
-          settings[symbol] = proc(&block)
+          settings[symbol.to_s] = proc(&block)
         when args.count == 1
-          settings[symbol] = args[0]
+          settings[symbol.to_s] = args[0]
         else
-          settings[symbol] = args
+          settings[symbol.to_s] = args
       end
-    elsif settings.has_key?(symbol) then
+    elsif settings.has_key?(symbol.to_s) then
       if block_given? || args.count > 0 then
         self.send("#{symbol}=", *args, proc(&block))
       else
-        settings[symbol]
+        parse(settings[symbol.to_s])
       end
     else
       super(symbol, *args, &block)
     end
+  end
+
+  def respond_to?(symbol)
+    super || settings.has_key?(symbol) || settings.has_key?(symbol.to_s)
   end
 
   def succeeded?; @succeeded end
@@ -119,4 +147,18 @@ class Settings
     end
   end
 
+  class Templater < Mustache
+    def initialize(settings, _template)
+      @settings = settings
+      self.template = _template
+    end
+
+    def method_missing(symbol, *args, &block)
+      @settings.send(symbol, *args, &block)
+    end
+
+    def respond_to?(symbol)
+      super(symbol) ||  @settings.respond_to?(symbol)
+    end
+  end
 end

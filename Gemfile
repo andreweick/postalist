@@ -6,7 +6,7 @@ gem 'i18n', '~> 0.6'
 gem 'activesupport', '~> 3.2', require: 'active_support/all'
 gem 'encryptor', '~> 1.1'
 gem 'pony', '~> 1.4'
-gem 'handlebars', '~> 0.3'
+gem 'mustache', '~> 0.99'
 
 group :development do
   gem 'pry'

@@ -10,13 +10,22 @@ describe Settings do
     @request = OpenStruct.new(
       referer: 'http://test.com/'
     )
-    @dir = File.expand_path('../../settings/referers/test_com', __FILE__)
+    @settings_root = File.expand_path('../../settings/test', __FILE__)
+    @defaults_filename = File.join(@settings_root, 'defaults.yml')
+    @settings_filename = File.join(@settings_root, 'referers/test_com/settings.yml')
 
-    `mkdir #{@dir} && touch #{File.join(@dir, 'settings.yml')}`
+    File.open(@defaults_filename, 'w') do |f|
+      f.write <<-eof
+one: 1
+two: 2
+      eof
+    end
+    `touch #{@settings_filename}`
   end
 
   after(:all) do
-    `rm -r #{@dir}`
+    `rm #{@defaults_filename}`
+    `rm #{@settings_filename}`
   end
 
   before(:each) do
@@ -25,13 +34,32 @@ describe Settings do
 
   context "with all default settings" do
     before(:all) do
-      File.open(File.join(@dir, 'settings.yml'), 'w') do |f|
-        f.write ''
+      File.open(@settings_filename, 'w') {|f| f.write '' }
+    end
+
+    it "reads settings from defaults" do
+      expect(@settings.one).to eq 1
+    end
+  end
+
+  context "with custom settings" do
+    before(:all) do
+      File.open(@settings_filename, 'w') do |f|
+        f.write <<-eof
+one: 'custom 1'
+three: 3
+late_bound: '{{one}} {{three}}'
+        eof
       end
     end
 
-    it "supplies settings hash to instances" do
-      expect(@settings.on_failure).to eq 'http://cnn.com'
+    it "read custom settings based on referer" do
+      expect(@settings.one).to eq 'custom 1'
+      expect(@settings.three).to eq 3
+    end
+
+    it "compiles late-bound properties via handlebars syntax" do
+      expect(@settings.late_bound).to eq 'custom 1 3'
     end
   end
 end
