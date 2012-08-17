@@ -9,10 +9,12 @@ gem 'pony', '~> 1.4'
 gem 'mustache', '~> 0.99'
 gem 'andand'
 
+gem 'rspec'
+gem 'email_spec'
+
 group :development do
   gem 'pry'
 end
 
 group :test do
-  gem 'rspec'
 end

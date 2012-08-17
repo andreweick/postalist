@@ -28,8 +28,9 @@ class Email
     @x_x_sender ||= "Message posted on #{request.referer} from #{request.ip}"
   end
 
-  def subject
-    @subject ||= settings[:subject] ? Templater.parse(settings, settings[:subject]) : x_x_sender
+  def parsed(key)
+    @parsed ||= {}
+    @parsed[key] ||= settings[key] && Templater.parse(settings[key], settings, request.params, request)
   end
 
   def body
@@ -39,12 +40,13 @@ class Email
   def prepped_settings
     @prepped_settings ||= @settings.clone.tap do |s|
       # Convert most stuff to symbols for Pony's sake.
-      s[:via] = s[:via].to_sym
-      s[:via_options] = s[:via_options].andand.symbolize_keys
+      s[:via] = s[:via].andand.to_sym || :sendmail
+      s[:via_options] = s[:via_options].andand.symbolize_keys || {}
 
       s[:headers] ||= {}
       s[:headers]['X-X-Sender'] = x_x_sender
-      s[:subject] = subject
+      s[:subject] = parsed(:subject) || x_x_sender
+      s[:from] = parsed(:from)
       s[:body] = body
     end
   end

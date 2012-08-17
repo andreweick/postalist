@@ -48,7 +48,7 @@ class Settings
   def parse(string)
     return string unless string.is_a? String
     @templates ||= {}
-    @templates[string] ||= Templater.new(self, string)
+    @templates[string] ||= Templater.new(string, self)
     @templates[string].render
   end
 

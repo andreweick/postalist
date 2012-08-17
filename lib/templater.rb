@@ -1,32 +1,37 @@
 class Templater < Mustache
-  def self.parse(data, _template)
-    self.new(data, _template).render
+  def self.parse(*args)
+    self.new(*args).render
   end
 
-  def initialize(data, _template)
-    @data = data
-    self.template = _template
-
-    delegate_hash_methods if @data.respond_to?(:has_key?)
+  def initialize(a_template, *args)
+    @objects = args
+    self.template = a_template
   end
 
-  def delegate_hash_methods
-    instance_eval do
-      def has_key?(key)
-        @data.has_key?(key)
-      end
-
-      def [](key)
-        @data[key]
+  def send_to_wrapped(sym, *args, &block)
+    @objects.reduce(nil) do |memo, obj|
+      case
+        when memo
+          memo
+        when obj.respond_to?(sym)
+          obj.send(sym, *args, &block)
+        when !block_given? && args.empty? && obj.respond_to?(:[])
+          obj[sym]
+        else
+          memo
       end
     end
   end
 
-  def method_missing(symbol, *args, &block)
-    @data.send(symbol, *args, &block)
+  def method_missing(sym, *args, &block)
+    send_to_wrapped(sym, *args, &block)
   end
 
-  def respond_to?(symbol)
-    super(symbol) || @data.respond_to?(symbol)
+  def respond_to?(sym)
+    super(sym) || send_to_wrapped(:respond_to?, sym) || send_to_wrapped(:has_key?, sym)
+  end
+
+  def [](key)
+    send_to_wrapped key
   end
 end
