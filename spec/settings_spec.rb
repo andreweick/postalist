@@ -63,6 +63,12 @@ describe Settings do
       end
     end
 
+    after(:all) do
+      File.open(@settings_filename, 'w') do |f|
+        f.write ''
+      end
+    end
+
     it "read custom settings based on referer" do
       expect(@settings.one).to eq 'custom 1'
       expect(@settings.three).to eq 3
@@ -80,6 +86,33 @@ describe Settings do
       expect(@settings.sub_settings['one']).to eq 'custom 1'
       expect(@settings.sub_settings['two']).to eq 'default 2'
       expect(@settings.sub_settings['three']).to eq 'custom 3'
+    end
+  end
+
+  context "with simple actions configured" do
+    before(:all) do
+      File.open(@settings_filename, 'w') do |f|
+        f.write <<-eof
+          action: email
+          on_success: 'http://thankyoupage.com'
+          on_failure: 'http://somethingswrong.com'
+        eof
+      end
+    end
+
+    after(:all) do
+      File.open(@settings_filename, 'w') do |f|
+        f.write ''
+      end
+    end
+
+    it "combines action settings into a special hash" do
+      expect(@settings.actions).to eq Hash[
+        'email' => {
+          'on_success' => 'http://thankyoupage.com',
+          'on_failure' => 'http://somethingswrong.com'
+        }
+      ]
     end
   end
 end

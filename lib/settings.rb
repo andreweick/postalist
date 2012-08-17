@@ -93,6 +93,15 @@ class Settings
   def hex_unpack string; Base64.decode64(string) end
   def post; @request.post? && @request.POST end
 
+  def actions
+    settings['actions'] || {
+      settings['action'] => {
+        'on_success' => settings['on_success'],
+        'on_failure' => settings['on_failure']
+      }
+    }
+  end
+
   def seed
     @seed ||= if post && post['token']
       hex_unpack(post['token'])[0..seed_length-1]

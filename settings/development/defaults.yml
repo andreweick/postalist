@@ -1,7 +1,6 @@
 on_success: 'http://camenischcreative.com/'
 on_failure: "{{referer}}?message={{flash}}"
-actions:
-  - email
+action: email
 token_elements:
   - referer
   - ip
