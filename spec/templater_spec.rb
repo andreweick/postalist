@@ -15,5 +15,4 @@ describe Templater do
     a_hash = { one: 1, two: 2 }
     expect(Templater.new(a_hash, '{{one}}, {{two}}').render).to eq '1, 2'
   end
-
 end
