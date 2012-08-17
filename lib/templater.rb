@@ -7,11 +7,17 @@ class Templater < Mustache
     @data = data
     self.template = _template
 
-    if @data.respond_to?(:has_key?)
-      instance_eval do
-        def has_key?(key)
-          @data.has_key?(key)
-        end
+    delegate_hash_methods if @data.respond_to?(:has_key?)
+  end
+
+  def delegate_hash_methods
+    instance_eval do
+      def has_key?(key)
+        @data.has_key?(key)
+      end
+
+      def [](key)
+        @data[key]
       end
     end
   end
@@ -21,10 +27,6 @@ class Templater < Mustache
   end
 
   def respond_to?(symbol)
-    super(symbol) ||  @data.respond_to?(symbol)
-  end
-
-  def [](key)
-    @data[key]
+    super(symbol) || @data.respond_to?(symbol)
   end
 end
