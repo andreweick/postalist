@@ -15,10 +15,7 @@ mail:
   via_options:
     host: smtp.gmail.com
   to: jonathan@camenisch.net
-  cc: nil
-  bcc: nil
-  from: nil
-  subject: nil
+  subject: "Message posted on {{referer}} from {{ip}}"
   #charset: ,
   #message_id: ,
   sender: 'webform@camenischcreative.com'
