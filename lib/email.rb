@@ -2,23 +2,54 @@ class Email
   def initialize(settings, request)
     @request = request
 
-    # Convert keys (and some values) to symbols for Pony's use
+    # Convert keys to symbols for Pony's use
     # With settings in YAML, it's more user-friendly to initialize them as strings
     @settings = settings.symbolize_keys
-    @settings[:via_options] = @settings[:via_options].andand.symbolize_keys
-    @settings[:via] = @settings[:via].to_sym
+
+    # Just for reading by things that want to render a Mustache template
+    # from the settings object (e.g., the subject method)
     @settings[:referer] = request.referer
     @settings[:ip] = request.ip
   end
 
   attr_reader :settings, :request
 
-  def send
-    settings[:headers] ||= {}
-    settings[:headers]['X-X-Sender'] = "Message posted on #{request.referer} from #{request.ip}"
-    settings[:subject] = settings[:subject] ? Templater.parse(settings, settings[:subject]) : settings[:headers]['X-X-Sender']
-
-    Pony.mail(settings)
+  def form_hash
+    request.env["rack.request.form_hash"]
   end
 
+  def form_array
+    form_hash.reduce([]) do |memo, (k,v)|
+      memo << {key: k, value: v}
+    end
+  end
+
+  def x_x_sender
+    @x_x_sender ||= "Message posted on #{request.referer} from #{request.ip}"
+  end
+
+  def subject
+    @subject ||= settings[:subject] ? Templater.parse(settings, settings[:subject]) : x_x_sender
+  end
+
+  def body
+    'This is just some filler!'
+  end
+
+  def prepped_settings
+    @prepped_settings ||= @settings.clone.tap do |s|
+      # Convert most stuff to symbols for Pony's sake.
+      s[:via] = s[:via].to_sym
+      s[:via_options] = s[:via_options].andand.symbolize_keys
+
+      s[:headers] ||= {}
+      s[:headers]['X-X-Sender'] = x_x_sender
+      s[:subject] = subject
+      s[:body] = body
+    end
+  end
+
+  def send
+    Pony.mail(prepped_settings)
+  end
 end
