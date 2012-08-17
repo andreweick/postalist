@@ -1,11 +1,11 @@
 ENV['RACK_ENV'] = 'test'
+$LOAD_PATH << File.expand_path('../lib',__FILE__)
 
 require 'rubygems'
 require 'bundler'
 
 Bundler.require
 
-require 'templater'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |c|
