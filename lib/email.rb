@@ -5,11 +5,6 @@ class Email
     # Convert keys to symbols for Pony's use
     # With settings in YAML, it's more user-friendly to initialize them as strings
     @settings = settings.symbolize_keys
-
-    # Just for reading by things that want to render a Mustache template
-    # from the settings object (e.g., the subject method)
-    @settings[:referer] = request.referer
-    @settings[:ip] = request.ip
   end
 
   attr_reader :settings, :request
@@ -25,16 +20,31 @@ class Email
   end
 
   def x_x_sender
-    @x_x_sender ||= "Message posted on #{request.referer} from #{request.ip}"
+    @x_x_sender ||= ""
+  end
+
+  def parse(template)
+    Templater.parse(template, settings, request.params, request)
   end
 
   def parsed(key)
-    @parsed ||= {}
-    @parsed[key] ||= settings[key] && Templater.parse(settings[key], settings, request.params, request)
+    (@parsed ||= {})[key] ||= parse(settings[key])
   end
 
   def body
-    'This is just some filler!'
+    return @body if @body
+    if settings[:template]
+      @body = parse(File.read(settings[:template]))
+
+      extensions = settings[:template][/\.[^\/]+$/].split('.')
+      extensions.delete('mustache')
+      extensions.delete('')
+
+      extensions.each do |format|
+        @body = Tilt[format].new{@body}.render
+      end
+    end
+    @body
   end
 
   def prepped_settings
@@ -44,7 +54,7 @@ class Email
       s[:via_options] = s[:via_options].andand.symbolize_keys || {}
 
       s[:headers] ||= {}
-      s[:headers]['X-X-Sender'] = x_x_sender
+      s[:headers]['X-X-Sender'] = parse('Message posted on {{referer}} from {{ip}}')
       s[:subject] = parsed(:subject) || x_x_sender
       s[:from] = parsed(:from)
       s[:body] = body

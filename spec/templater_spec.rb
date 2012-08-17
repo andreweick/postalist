@@ -37,7 +37,7 @@ describe Templater do
     expect(Templater.new('{{one1}}, {{one2}}, {{two1}}, {{two2}}', hash1, object2).render).to eq '1, 2, 21, 22'
   end
 
-  it "can wrap object after a hash after an object" do
+  it "can wrap an object after a hash after an object" do
     object1 = OpenStruct.new( one1: 1, one2: 2 )
     hash2 = {one1: 'ignored', one2: 'ignored', two1: 21, two2: 22}
     object3 = OpenStruct.new( one1: 'ignored', two2: 'ignored', three1: 31, three2: 32 )

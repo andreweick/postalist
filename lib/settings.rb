@@ -19,30 +19,37 @@ class Settings
   def initialize(request, referer=false)
     @succeeded, @failed = false, false
     @request = request
-
     @referer = referer || @request.referer
-    @settings_file = File.join(
-      settings_path, 'referers',
-      @referer.sub(%r{^http://(www\.)?},'').gsub(%r{:|\.},'_').sub(/_$/,''),
-      'settings.yml'
-    )
   end
 
   attr_reader :referer
   attr_writer :flash
 
-  def settings_path
+  def default_settings_path
     self.class.settings_path
+  end
+
+  def settings_path
+    @settings_path = File.join(
+      default_settings_path, 'referers',
+      @referer.sub(%r{^http://(www\.)?},'').gsub(%r{:|\.},'_').sub(/_$/,'')
+    )
+  end
+
+  def settings_file
+    File.join(settings_path, 'settings.yml')
   end
 
   def settings
     @settings ||= self.class.defaults.deep_merge(
-      Psych.load(File.read(@settings_file)) || {}
+      Psych.load(File.read(settings_file)) || {}
     )
   end
 
-  def []=(*args)
-
+  def mail
+    settings['mail'].tap do |h|
+      h[:template] = Dir.glob(File.join(settings_path, 'email.*')).first
+    end
   end
 
   def parse(string)

@@ -11,8 +11,6 @@ secret: something
 mail:
   from: webform@camenischcreative.com
   via: sendmail
-  via_options:
-    host: smtp.gmail.com
   to: jonathan@camenisch.net
   subject: "Message posted on {{referer}} from {{ip}}"
   #charset: ,
