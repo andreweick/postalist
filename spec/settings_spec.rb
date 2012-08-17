@@ -115,4 +115,30 @@ describe Settings do
       ]
     end
   end
+
+  context "with no on_failure configured" do
+    before(:all) do
+      File.open(@settings_filename, 'w') do |f|
+        f.write <<-eof
+          action: email
+          on_success: 'http://thankyoupage.com'
+        eof
+      end
+    end
+
+    after(:all) do
+      File.open(@settings_filename, 'w') do |f|
+        f.write ''
+      end
+    end
+
+    it "combines action settings into a special hash" do
+      expect(@settings.actions).to eq Hash[
+        'email' => {
+          'on_success' => 'http://thankyoupage.com',
+          'on_failure' => nil
+        }
+      ]
+    end
+  end
 end
