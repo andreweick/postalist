@@ -13,12 +13,11 @@ gem 'maruku', '~> 0.6'
 gem 'RedCloth', '>= 0'
 gem 'tilt', '~> 1.3'
 
-gem 'rspec'
-gem 'email_spec'
-
 group :development do
   gem 'pry'
 end
 
 group :test do
+  gem 'rspec'
+  gem 'email_spec'
 end
