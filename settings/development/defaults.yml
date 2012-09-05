@@ -10,7 +10,6 @@ seed_length: 5
 secret: something
 mail:
   from: webform@camenischcreative.com
-  via: sendmail
   to: jonathan@camenisch.net
   subject: "Message posted on {{referer}} from {{ip}}"
   #charset: ,

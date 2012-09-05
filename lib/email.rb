@@ -1,9 +1,6 @@
 class Email
   def initialize(settings, request)
     @request = request
-
-    # Convert keys to symbols for Pony's use
-    # With settings in YAML, it's more user-friendly to initialize them as strings
     @settings = settings.symbolize_keys
   end
 
@@ -20,7 +17,7 @@ class Email
   end
 
   def x_x_sender
-    @x_x_sender ||= ""
+    @x_x_sender ||= parse('Message posted on {{referer}} from {{ip}}')
   end
 
   def parse(template)
@@ -47,21 +44,20 @@ class Email
     @body
   end
 
-  def prepped_settings
-    @prepped_settings ||= @settings.clone.tap do |s|
-      # Convert most stuff to symbols for Pony's sake.
-      s[:via] = s[:via].andand.to_sym || :sendmail
-      s[:via_options] = s[:via_options].andand.symbolize_keys || {}
-
-      s[:headers] ||= {}
-      s[:headers]['X-X-Sender'] = parse('Message posted on {{referer}} from {{ip}}')
-      s[:subject] = parsed(:subject) || x_x_sender
-      s[:from] = parsed(:from)
-      s[:body] = body
+  def mail
+    @mail ||= Mail.new.tap do |m|
+      m.from    = parsed(:from)
+      m.to      = settings[:to]
+      m.subject = (parsed(:subject) || x_x_sender)
+      (settings[:headers] || {}).each do |key, value|
+        m[key] = value
+      end
+      m['X-X-Sender'] = x_x_sender
+      m.body = body
     end
   end
 
   def send
-    Pony.mail(prepped_settings)
+    mail.deliver!
   end
 end

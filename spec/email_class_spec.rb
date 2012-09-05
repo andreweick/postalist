@@ -3,6 +3,10 @@ require 'templater'
 require 'email'
 require 'ostruct'
 
+Mail.defaults do
+  delivery_method :test
+end
+
 describe Email do
   before(:all) do
     @some_settings = {
@@ -12,6 +16,7 @@ describe Email do
     }
     @request = OpenStruct.new(
       referer: 'http://anypost.dev/test',
+      ip: '127.0.0.1',
       params: {
         name: 'Jed Clampett',
         email: 'jed@clampett.io'
@@ -19,22 +24,14 @@ describe Email do
     )
   end
 
-  before(:each) do
-    # Hijack deliver method to not send email
-    Pony.stub(:deliver)
-  end
-
   it "should be set to be delivered to the configured email address" do
-    email = Email.new(@some_settings, @request)
-    Pony.should_receive(:mail) do |params|
-      expect(params[:from]).to eq '"Jed Clampett" <jed@clampett.io>'
-      expect(params[:to]).to eq "test@camenisch.net"
-      expect(params[:subject]).to include("New message from http://anypost.dev/test")
+    email = Email.new(@some_settings, @request).mail
+    expect(email[:from].to_s).to eq 'Jed Clampett <jed@clampett.io>'
+    expect(email[:to].to_s).to eq "test@camenisch.net"
+    expect(email[:subject].to_s).to eq "New message from http://anypost.dev/test"
 
-      #expect(params[:body]).to include("You've been invited to blah")
-      #expect(params[:body]).to include("/#{@account_id}/new-user/register")
-    end
-    email.send
+    #expect(params[:body]).to include("You've been invited to blah")
+    #expect(params[:body]).to include("/#{@account_id}/new-user/register")
   end
 
   it "should render its body from a template file, processing via Mustache and Tilt" do
@@ -42,28 +39,28 @@ describe Email do
       s[:template] = 'email.md.mustache'
     end
     File.open(settings[:template], 'w') do |template|
-      template.write <<-eof
+      template.write %(
 New message posted at {{referer}}
 =================================
 
 to: {{to}}
 
 From: {{name}} at {{email}}
-      eof
+      )
     end
 
-    email = Email.new(settings, @request)
+    begin
+      email = Email.new(settings, @request).mail
 
-    Pony.should_receive(:mail) do |params|
-      expect(params[:body].to_s).to eq <<-eos
+      expect(email.body).to eq %(
 <h1 id='new_message_posted_at_httpanypostdevtest'>New message posted at http://anypost.dev/test</h1>
 
 <p>to: test@camenisch.net</p>
 
 <p>From: Jed Clampett at jed@clampett.io</p>
-      eos
-      .chomp
+      ).strip
+    ensure
+      File.delete(settings[:template])
     end
-    email.send
   end
 end
