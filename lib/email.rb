@@ -28,20 +28,36 @@ class Email
     (@parsed ||= {})[key] ||= parse(settings[key])
   end
 
-  def body
-    return @body if @body
-    if settings[:template]
-      @body = parse(File.read(settings[:template]))
+  def template_extensions
+    @template_extensions ||= settings[:template][/\.[^\/]+$/].split('.').delete_if{|e| e == '' }
+  end
 
-      extensions = settings[:template][/\.[^\/]+$/].split('.')
-      extensions.delete('mustache')
-      extensions.delete('')
+  def template_text
+    @template_text ||= settings[:template] && parse(File.read(settings[:template]))
+  end
 
-      extensions.each do |format|
-        @body = Tilt[format].new{@body}.render
+  def html_body
+    return @html_body if @html_body
+    if template_text
+      @html_body = template_text
+
+      template_extensions.reject{|e| e == 'mustache' }.each do |format|
+        @html_body = Tilt[format].new{@html_body}.render
       end
     end
-    @body
+    @html_body
+  end
+
+  def plaintext_body
+    return @plaintext_body if @plaintext_body
+    if template_text
+      @plaintext_body = template_text
+
+      template_extensions.reject{|e| e =~ /^(mustache|markdown|mkd|md|textile)$/ }.each do |format|
+        @plaintext_body = Tilt[format].new{@plaintext_body}.render
+      end
+    end
+    @plaintext_body
   end
 
   def mail
@@ -53,7 +69,14 @@ class Email
         m[key] = value
       end
       m['X-X-Sender'] = x_x_sender
-      m.body = body
+
+      m.html_part = Mail::Part.new do
+        content_type 'text/html; charset=UTF-8'
+      end
+      m.html_part.body = html_body
+
+      m.text_part = Mail::Part.new
+      m.text_part.body = self.plaintext_body
     end
   end
 
