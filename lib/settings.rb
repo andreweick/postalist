@@ -1,4 +1,5 @@
 require 'psych'
+require 'templater'
 
 class Settings
 
@@ -7,12 +8,12 @@ class Settings
       ENV['RACK_ENV'] || :development
     end
 
-    def settings_path
-      File.expand_path("../../settings/#{env}", __FILE__)
+    def settings_root
+      File.expand_path("../../settings#{'/test' if env == 'test'}", __FILE__)
     end
 
     def defaults
-      @defaults ||= Psych.load(File.read(File.join(settings_path, 'defaults.yml')))
+      @defaults ||= Psych.load(File.read(File.join(settings_root, 'defaults', 'settings.yml')))
     end
   end
 
@@ -25,14 +26,14 @@ class Settings
   attr_reader :referer
   attr_writer :flash
 
-  def default_settings_path
-    self.class.settings_path
+  def settings_root
+    self.class.settings_root
   end
 
   def settings_path
     @settings_path = File.join(
-      default_settings_path, 'referers',
-      @referer.sub(%r{^http://(www\.)?},'').gsub(%r{:|\.},'_').sub(/_$/,'')
+      settings_root,
+      referer.sub(%r{^https?://(www\.)?},'').gsub(/:|\./,'_').sub(/_$/,'')
     )
   end
 

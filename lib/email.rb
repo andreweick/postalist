@@ -20,8 +20,22 @@ class Email
     @x_x_sender ||= parse('Message posted on {{referer}} from {{ip}}')
   end
 
+  def form_fields
+    request.env.andand["rack.request.form_hash"]
+  end
+
+  def user_form_fields
+    @user_form_fields ||= form_fields.andand.reject{|k, _| k == 'token' }
+  end
+
+  def user_form_fields_array
+    user_form_fields.andand.reduce([]) do |memo, (k, v)|
+      memo << {name: k, value: v}
+    end
+  end
+
   def parse(template)
-    Templater.parse(template, settings, request.params, request)
+    Templater.parse(template, settings, request.params, request, {form_fields: user_form_fields_array})
   end
 
   def parsed(key)

@@ -7,9 +7,8 @@ describe Settings do
     @request = OpenStruct.new(
       referer: 'http://test.com/'
     )
-    @settings_root = File.expand_path('../../settings/test', __FILE__)
-    @defaults_filename = File.join(@settings_root, 'defaults.yml')
-    @settings_filename = File.join(@settings_root, 'referers/test_com/settings.yml')
+    @defaults_filename = File.join(Settings.settings_root, 'defaults/settings.yml')
+    @settings_filename = File.join(Settings.settings_root, 'test_com/settings.yml')
 
     File.open(@defaults_filename, 'w') do |f|
       f.write <<-eof

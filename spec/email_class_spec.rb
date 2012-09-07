@@ -23,7 +23,7 @@ describe Email do
       'from' => '"{{name}}" <{{email}}>'
     }
     @request = OpenStruct.new(
-      referer: 'http://anypost.dev/test',
+      referer: 'http://postalist.dev/test',
       ip: '127.0.0.1',
       params: {
         name: 'Jed Clampett',
@@ -36,7 +36,7 @@ describe Email do
     email = Email.new(@some_settings, @request).mail
     expect(email[:from].to_s).to eq 'Jed Clampett <jed@clampett.io>'
     expect(email[:to].to_s).to eq "test@camenisch.net"
-    expect(email[:subject].to_s).to eq "New message from http://anypost.dev/test"
+    expect(email[:subject].to_s).to eq "New message from http://postalist.dev/test"
 
     #expect(params[:body]).to include("You've been invited to blah")
     #expect(params[:body]).to include("/#{@account_id}/new-user/register")
@@ -51,7 +51,7 @@ describe Email do
         template: 'email.md.mustache'
       }
       @request = OpenStruct.new(
-        referer: 'http://anypost.dev/test',
+        referer: 'http://postalist.dev/test',
         ip: '127.0.0.1',
         params: {
           name: 'Jed Clampett',
@@ -79,7 +79,7 @@ From: {{name}} at {{email}}
       email = Email.new(@settings, @request).mail
 
       expect(email.html_part.body).to eq %(
-<h1 id='new_message_posted_at_httpanypostdevtest'>New message posted at http://anypost.dev/test</h1>
+<h1 id='new_message_posted_at_httppostalistdevtest'>New message posted at http://postalist.dev/test</h1>
 
 <p>to: test@camenisch.net</p>
 
@@ -91,7 +91,7 @@ From: {{name}} at {{email}}
       email = Email.new(@settings, @request).mail
 
       expect(email.text_part.body).to eq %(
-New message posted at http://anypost.dev/test
+New message posted at http://postalist.dev/test
 =================================
 
 to: test@camenisch.net
