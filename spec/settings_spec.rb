@@ -28,7 +28,7 @@ describe Settings do
   end
 
   before(:each) do
-    @settings = Settings.new(@request)
+    @settings = Settings.new(@request.referer)
   end
 
   context "with all default settings" do

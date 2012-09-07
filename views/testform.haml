@@ -11,9 +11,9 @@
     = @settings.secret
   %li
     seed:
-    = @settings.seed
+    = @authenticator.seed
 %form{ :method => 'post', :action => '' }
-  %input{ :type => 'text', :name => 'token', :value => @settings.token }
+  %input{ :type => 'text', :name => 'token', :value => @authenticator.token }
   %ul
     %li
       %label Name:

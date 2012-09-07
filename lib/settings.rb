@@ -17,10 +17,9 @@ class Settings
     end
   end
 
-  def initialize(request, referer=false)
+  def initialize(referer)
     @succeeded, @failed = false, false
-    @request = request
-    @referer = referer || @request.referer
+    @referer = referer
   end
 
   attr_reader :referer
@@ -97,10 +96,6 @@ class Settings
     @flash && URI.escape(@flash, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))
   end
 
-  def hex_pack string; Base64.encode64(string) end
-  def hex_unpack string; Base64.decode64(string) end
-  def post; @request.post? && @request.POST end
-
   def actions
     settings['actions'] || {
       settings['action'] => {
@@ -108,31 +103,6 @@ class Settings
         'on_failure' => settings['on_failure']
       }
     }
-  end
-
-  def seed
-    @seed ||= if post && post['token']
-      hex_unpack(post['token'])[0..seed_length-1]
-    else
-      (0..seed_length-1).inject('') do |out, _|
-        out << '0123456789abcdef'[rand(15)].chr
-      end
-    end
-  end
-
-  def token
-    hex_pack(
-      seed +
-      Digest::SHA2.hexdigest(
-        token_elements.inject('') do |out, el|
-          out + send(el)
-        end
-      )
-    )
-  end
-
-  def authenticate
-    post && post['token'] && hex_unpack(post['token']) == hex_unpack(token)
   end
 
   def process

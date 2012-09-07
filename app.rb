@@ -27,22 +27,25 @@ def do_actions(_actions, *args)
 end
 
 before do
-  @settings = Settings.new(request) if request.post?
-end
-
-post /.*/ do
-  if authenticate then
-    do_actions(@settings.actions)
-  else
-    redirect back
-  end
 end
 
 get /^\/test.*/ do
-  @settings = Settings.new(request, request.url)
+  @settings = Settings.new(request.url)
+  @authenticator = Authenticator.new(request, @settings)
   haml :testform
 end
 
 get /.*/ do
   request.path
+end
+
+post /.*/ do
+  @settings = Settings.new(request.referer)
+  @authenticator = Authenticator.new(request, @settings)
+
+  if @authenticator.authenticate? then
+    do_actions(@settings.actions)
+  else
+    redirect back
+  end
 end

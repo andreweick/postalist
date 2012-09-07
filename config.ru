@@ -19,6 +19,7 @@ require 'helpers'
 require 'templater'
 require 'email'
 require 'settings'
+require 'authenticator'
 require './app'
 
 run Sinatra::Application
