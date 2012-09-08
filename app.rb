@@ -7,10 +7,6 @@ def actions
   }
 end
 
-def authenticate
-  @settings.authenticate
-end
-
 def do_actions(_actions, *args)
   if _actions.respond_to?(:each)
     _actions.each do |(action, options)|
@@ -32,6 +28,7 @@ end
 get '/token/:timestamp.js' do
   @settings = Settings.new(request.referer)
   @authenticator = Authenticator.new(request, @settings)
+
   content_type 'text/javascript'
   erb :'token.js'
 end
