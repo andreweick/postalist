@@ -32,7 +32,7 @@ class Settings
   def settings_path
     @settings_path = File.join(
       settings_root,
-      referer.sub(%r{^https?://(www\.)?},'').gsub(/:|\./,'_').sub(/_$/,'')
+      referer ? referer.sub(%r{^https?://(www\.)?},'').gsub(/:|\./,'_').sub(/_$/,'') : 'defaults'
     )
   end
 

@@ -29,10 +29,17 @@ end
 before do
 end
 
-get /^\/test.*/ do
+get '/token/:timestamp.js' do
+  @settings = Settings.new(request.referer)
+  @authenticator = Authenticator.new(request, @settings)
+  content_type 'text/javascript'
+  erb :'token.js'
+end
+
+get /^\/(test.*)/ do |url|
   @settings = Settings.new(request.url)
   @authenticator = Authenticator.new(request, @settings)
-  haml :testform
+  haml :"#{url}form"
 end
 
 get /.*/ do

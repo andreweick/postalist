@@ -1,0 +1,19 @@
+(function(){
+  function input(type, name, value) {
+    var ret = document.createElement('input');
+    ret.type = type;
+    ret.name = name;
+    ret.value = value;
+
+    return ret;
+  }
+
+  var forms = document.getElementsByTagName('form');
+  for (var i = 0, l = forms.length, form; i < l; i++) {
+    form = forms[i];
+    if (form.hasAttribute('data-postalist')) {
+      form.appendChild(input('hidden', 'timestamp', '<%= @authenticator.timestamp %>'));
+      form.appendChild(input('hidden', 'token', '<%= @authenticator.token %>'));
+    }
+  }
+})();

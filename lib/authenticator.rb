@@ -30,6 +30,10 @@ class Authenticator
     self.class.seed(@settings.seed_length, post.andand['token'])
   end
 
+  def timestamp
+    post.andand['timestamp'].andand.to_f || Time.new.to_f
+  end
+
   def token
     pack(
       seed +
@@ -45,7 +49,7 @@ class Authenticator
           end.to_s
         end
       )
-    )
+    ).gsub(/\s/,'')
   end
 
   def post

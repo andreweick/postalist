@@ -11,6 +11,7 @@ $LOAD_PATH << File.expand_path('../lib',__FILE__)
 
 require 'base64'
 require 'digest/sha2'
+require 'json'
 require 'uri'
 
 require 'sinatra'

@@ -1,5 +1,5 @@
 !!!
-%h1 Test using server-generated token
+%h1 Test using js-provided token
 %ul
   %li
     url:
@@ -13,8 +13,7 @@
   %li
     seed:
     = @authenticator.seed
-%form{ :method => 'post', :action => '' }
-  %input{ :type => 'text', :name => 'token', :value => @authenticator.token }
+%form{ :method => 'post', :'data-postalist' => '' }
   %ul
     %li
       %label Name:
@@ -24,3 +23,9 @@
       %input{ :type => 'text', :name => 'Email', :value => 'jonathan@camenisch.net' }
   %button{ :type => 'submit' }
     Post It.
+:javascript
+  (function(d) {
+    var s = d.createElement('script'), s2 = d.getElementsByTagName('script')[0];
+    s.src = '/token/' + Date.now() + '.js';
+    s2.parentNode.insertBefore(s, s2);
+  })(document);
