@@ -30,7 +30,7 @@ How?
 
    For example, https://www.example.com/my/contact/form.php needs a settings directory named settings/example_com/my/contact/form_php`
 
-3. Under this directory, create a settings.yml file, containing the following settings for starters:
+3. Under this directory, create a settings.yml file, containing the following settings for starters (customized to your taste):
 
    ```yaml
    on_success: 'http://example.com/url/for/redirect/after/post'
