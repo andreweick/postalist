@@ -48,7 +48,8 @@ class Settings
 
   def mail
     settings['mail'].tap do |h|
-      h[:template] = Dir.glob(File.join(settings_path, 'email.*')).first
+      h[:template]  =  Dir.glob(File.join(settings_path, 'email.*')).first
+      h[:template] ||= Dir.glob(File.join(settings_root, 'defaults', 'email.*')).first
     end
   end
 

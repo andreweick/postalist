@@ -25,7 +25,7 @@ class Email
   end
 
   def user_form_fields
-    @user_form_fields ||= form_fields.andand.reject{|k, _| k == 'token' }
+    @user_form_fields ||= form_fields.andand.reject{|k, _| k =~ /^(token|timestamp)$/ }
   end
 
   def user_form_fields_array
