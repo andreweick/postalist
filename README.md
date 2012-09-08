@@ -20,13 +20,13 @@ Sometimes we just need a static site—such as one would build with Jekyll, Octo
 How?
 ----
 
+### Install the server app
+
 1. Clone this repository
 
-2. Add a settings directory for your contact page. The directory should mirror the form’s url, with the following modifications:
-
-   * Remove http:// or https://
-   * Remove www. subdomain, if present
-   * Replace all dots (.) with underscores (_)
+2. Add a settings directory for your contact page. The directory should mirror the form’s url, but
+   1) without 'http://' or 'https://', 2) without any www. subdomain, and 3) with all dots (.)
+   replaced with underscores (_).
 
    For example, https://www.example.com/my/contact/form.php needs a settings directory named settings/example_com/my/contact/form_php`
 
@@ -40,9 +40,11 @@ How?
      subject: "Message posted on {{referer}} from {{ip}}"
    ```
 
-4. Configure the form page:
+4. Deploy to your Rack server of choice (Heroku works well for this purpose).
 
-   In the form element, add the attribute `data-postalist`, as in
+### Configure the form page:
+
+1. In the form element, add the attribute `data-postalist`, as in
 
    ```html
    <form data-postalist>
@@ -50,7 +52,7 @@ How?
    </form>
    ```
 
-   Then append the following to the page body (or header):
+2. Then append the following to the page body (or header):
 
    ```html
    <script>
